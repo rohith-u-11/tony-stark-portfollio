@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tony Stark | Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #f0a500;
+    --red: #c0392b;
+    --blue: #1a73e8;
+    --dark: #0a0c10;
+    --darker: #060709;
+    --surface: #111520;
+    --surface2: #161b2e;
+    --text: #e8eaf0;
+    --muted: #6b7a99;
+    --arc: #00d4ff;
+    --arc-glow: rgba(0, 212, 255, 0.3);
+    --hud-line: rgba(0, 212, 255, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--darker);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 20px; height: 20px;
+    border: 2px solid var(--arc);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: all 0.1s ease;
+  }
+  .cursor-dot {
+    position: fixed;
+    width: 4px; height: 4px;
+    background: var(--arc);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 6px var(--arc);
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* HUD grid background */
+  .hud-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--hud-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hud-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+    background: rgba(6, 7, 9, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--hud-line);
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--arc);
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px var(--arc-glow);
+  }
+
+  .nav-logo span { color: var(--gold); }
+
+  nav ul {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: color 0.3s, text-shadow 0.3s;
+  }
+
+  nav a:hover {
+    color: var(--arc);
+    text-shadow: 0 0 10px var(--arc-glow);
+  }
+
+  /* HERO */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 60px;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .arc-reactor {
+    position: absolute;
+    right: 8%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 340px;
+    height: 340px;
+  }
+
+  .arc-reactor svg {
+    width: 100%;
+    height: 100%;
+    animation: reactorSpin 20s linear infinite;
+    filter: drop-shadow(0 0 30px var(--arc)) drop-shadow(0 0 60px rgba(0,212,255,0.4));
+  }
+
+  @keyframes reactorSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .arc-core {
+    position: absolute;
+    inset: 30%;
+    background: radial-gradient(circle, #ffffff 0%, var(--arc) 40%, transparent 70%);
+    border-radius: 50%;
+    animation: corePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes corePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.9); }
+  }
+
+  .hero-content {
+    max-width: 650px;
+    z-index: 2;
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+    animation-delay: 0.3s;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-tag {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 6px;
+    color: var(--arc);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--arc);
+    box-shadow: 0 0 8px var(--arc);
+  }
+
+  .hero-name {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 10px;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(255,255,255,0.2);
+  }
+
+  .hero-name .highlight {
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(240,165,0,0.5);
+  }
+
+  .hero-title {
+    font-size: 1.4rem;
+    color: var(--muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 300;
+    margin-bottom: 30px;
+  }
+
+  .hero-desc {
+    font-size: 1.15rem;
+    color: var(--text);
+    opacity: 0.7;
+    line-height: 1.8;
+    margin-bottom: 50px;
+    max-width: 500px;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    padding: 14px 40px;
+    background: transparent;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-101%);
+    transition: transform 0.4s ease;
+    z-index: -1;
+  }
+
+  .btn-primary:hover {
+    color: var(--darker);
+    text-shadow: none;
+  }
+
+  .btn-primary:hover::before { transform: translateX(0); }
+
+  .btn-secondary {
+    padding: 14px 40px;
+    background: transparent;
+    border: 2px solid var(--arc);
+    color: var(--arc);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 0 15px var(--arc-glow);
+  }
+
+  .btn-secondary:hover {
+    background: var(--arc-glow);
+    box-shadow: 0 0 30px var(--arc-glow);
+  }
+
+  /* Stat bar */
+  .hero-stats {
+    position: absolute;
+    bottom: 60px;
+    left: 60px;
+    display: flex;
+    gap: 60px;
+  }
+
+  .stat {
+    text-align: center;
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+  }
+
+  .stat:nth-child(1) { animation-delay: 0.8s; }
+  .stat:nth-child(2) { animation-delay: 1s; }
+  .stat:nth-child(3) { animation-delay: 1.2s; }
+
+  .stat-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(240,165,0,0.4);
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Sections */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 100px 60px;
+  }
+
+  .section-header {
+    margin-bottom: 70px;
+  }
+
+  .section-tag {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 6px;
+    color: var(--arc);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-tag::before {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 1px;
+    background: var(--arc);
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 900;
+    color: #fff;
+  }
+
+  .section-title span { color: var(--gold); }
+
+  /* ABOUT */
+  #about {
+    background: var(--surface);
+    border-top: 1px solid var(--hud-line);
+    border-bottom: 1px solid var(--hud-line);
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .about-text p {
+    font-size: 1.1rem;
+    line-height: 1.9;
+    color: rgba(232,234,240,0.75);
+    margin-bottom: 20px;
+  }
+
+  .shield-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid var(--hud-line);
+    background: var(--surface2);
+  }
+
+  .shield-icon {
+    font-size: 2.5rem;
+  }
+
+  .shield-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    color: var(--arc);
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .skill-bar {
+    background: var(--surface2);
+    border: 1px solid var(--hud-line);
+    padding: 16px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skill-bar::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--arc), var(--gold));
+    width: var(--w, 0%);
+    transition: width 1.5s ease;
+    box-shadow: 0 0 10px var(--arc);
+  }
+
+  .skill-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .skill-pct {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* PROJECTS */
+  #projects { background: var(--darker); }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--hud-line);
+    padding: 40px 35px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    cursor: none;
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--gold));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+
+  .project-card:hover {
+    background: var(--surface2);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px var(--arc-glow);
+    border-color: rgba(0,212,255,0.3);
+  }
+
+  .project-card:hover::before { transform: scaleX(1); }
+
+  .project-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(0,212,255,0.08);
+    position: absolute;
+    top: 20px; right: 25px;
+    line-height: 1;
+  }
+
+  .project-icon {
+    font-size: 2.5rem;
+    margin-bottom: 25px;
+    display: block;
+  }
+
+  .project-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  .project-desc {
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 25px;
+  }
+
+  .project-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    padding: 4px 12px;
+    border: 1px solid var(--hud-line);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 2px;
+    color: var(--arc);
+    text-transform: uppercase;
+  }
+
+  /* AVENGERS */
+  #avengers {
+    background: var(--surface);
+    border-top: 1px solid var(--hud-line);
+    border-bottom: 1px solid var(--hud-line);
+  }
+
+  .avengers-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+  }
+
+  .avenger-card {
+    background: var(--surface2);
+    border: 1px solid var(--hud-line);
+    padding: 28px 18px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s ease;
+    cursor: none;
+  }
+
+  .avenger-card:hover {
+    border-color: var(--card-color, var(--arc));
+    box-shadow: 0 0 30px var(--card-glow, var(--arc-glow));
+    transform: translateY(-6px);
+  }
+
+  .avenger-emoji {
+    font-size: 2.8rem;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .avenger-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 2px;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+
+  .avenger-role {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* CONTACT */
+  #contact { background: var(--darker); }
+
+  .contact-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .contact-info p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: rgba(232,234,240,0.65);
+    margin-bottom: 40px;
+  }
+
+  .contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    border: 1px solid var(--hud-line);
+    background: var(--surface);
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.3s;
+    cursor: none;
+  }
+
+  .contact-link:hover {
+    border-color: var(--arc);
+    background: var(--surface2);
+    box-shadow: 0 0 20px var(--arc-glow);
+  }
+
+  .contact-link-icon { font-size: 1.4rem; }
+
+  .contact-link-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--arc);
+  }
+
+  .contact-link-val {
+    font-size: 0.95rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    position: relative;
+  }
+
+  .form-group label {
+    display: block;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--hud-line);
+    color: var(--text);
+    padding: 16px 20px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    cursor: none;
+    resize: none;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: var(--arc);
+    box-shadow: 0 0 15px var(--arc-glow);
+  }
+
+  .form-group textarea { height: 130px; }
+
+  .btn-submit {
+    padding: 18px;
+    background: linear-gradient(135deg, var(--red), var(--gold));
+    border: none;
+    color: #fff;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: none;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit:hover {
+    box-shadow: 0 0 30px rgba(240,165,0,0.4), 0 0 60px rgba(192,57,43,0.3);
+    transform: scale(1.02);
+  }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 40px 60px;
+    background: var(--darker);
+    border-top: 1px solid var(--hud-line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: var(--arc);
+    letter-spacing: 3px;
+  }
+
+  .footer-text {
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  /* Floating particles */
+  .particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--arc);
+    border-radius: 50%;
+    animation: float linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.4; }
+    100% { transform: translateY(-10px) translateX(40px); opacity: 0; }
+  }
+
+  /* HUD corners */
+  .hud-corner {
+    position: fixed;
+    width: 60px; height: 60px;
+    pointer-events: none;
+    z-index: 50;
+  }
+  .hud-corner.tl { top: 0; left: 0; border-top: 2px solid var(--arc); border-left: 2px solid var(--arc); }
+  .hud-corner.tr { top: 0; right: 0; border-top: 2px solid var(--arc); border-right: 2px solid var(--arc); }
+  .hud-corner.bl { bottom: 0; left: 0; border-bottom: 2px solid var(--arc); border-left: 2px solid var(--arc); }
+  .hud-corner.br { bottom: 0; right: 0; border-bottom: 2px solid var(--arc); border-right: 2px solid var(--arc); }
+
+  /* Red accent line hero */
+  .accent-line {
+    width: 3px;
+    height: 100px;
+    background: linear-gradient(180deg, var(--red), transparent);
+    position: absolute;
+    right: 55%;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    nav ul { gap: 20px; }
+    #hero { padding: 80px 24px 60px; }
+    .arc-reactor { display: none; }
+    section { padding: 80px 24px; }
+    .about-grid, .contact-wrapper { grid-template-columns: 1fr; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .avengers-grid { grid-template-columns: repeat(3, 1fr); }
+    .hero-stats { left: 24px; bottom: 30px; gap: 30px; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- HUD background -->
+<div class="hud-bg"></div>
+
+<!-- Particles -->
+<div class="particles" id="particles"></div>
+
+<!-- HUD corners -->
+<div class="hud-corner tl"></div>
+<div class="hud-corner tr"></div>
+<div class="hud-corner bl"></div>
+<div class="hud-corner br"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">STARK<span>.</span>TECH</div>
+  <ul>
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#avengers">Team</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-content">
+    <div class="hero-tag">Avenger // Engineer // Genius</div>
+    <h1 class="hero-name">
+      Tony<br>
+      <span class="highlight">Stark</span>
+    </h1>
+    <div class="hero-title">Iron Man &bull; Billionaire &bull; Philanthropist</div>
+    <p class="hero-desc">
+      I build things that save worlds. From the arc reactor to the Iron Legion — every line of code, every alloy, every algorithm is engineered to protect what matters most.
+    </p>
+    <div class="hero-btns">
+      <a href="#projects" class="btn-primary">View Projects</a>
+      <a href="#contact" class="btn-secondary">Assemble</a>
+    </div>
+  </div>
+
+  <!-- Arc Reactor -->
+  <div class="arc-reactor">
+    <svg viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring -->
+      <circle cx="170" cy="170" r="160" fill="none" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+      <circle cx="170" cy="170" r="145" fill="none" stroke="rgba(0,212,255,0.25)" stroke-width="2"/>
+      <!-- Rotating dashes outer -->
+      <circle cx="170" cy="170" r="132" fill="none" stroke="rgba(0,212,255,0.4)" stroke-width="1.5" stroke-dasharray="8 12"/>
+      <!-- Middle ring -->
+      <circle cx="170" cy="170" r="110" fill="none" stroke="rgba(0,212,255,0.3)" stroke-width="2"/>
+      <!-- Rotating segments -->
+      <g>
+        <line x1="170" y1="170" x2="170" y2="62" stroke="rgba(0,212,255,0.5)" stroke-width="2"/>
+        <line x1="170" y1="170" x2="269" y2="219" stroke="rgba(0,212,255,0.5)" stroke-width="2"/>
+        <line x1="170" y1="170" x2="71" y2="219" stroke="rgba(0,212,255,0.5)" stroke-width="2"/>
+      </g>
+      <!-- Inner structure -->
+      <circle cx="170" cy="170" r="70" fill="rgba(0,10,20,0.8)" stroke="rgba(0,212,255,0.6)" stroke-width="2"/>
+      <circle cx="170" cy="170" r="52" fill="rgba(0,20,40,0.9)" stroke="rgba(0,212,255,0.4)" stroke-width="1"/>
+      <!-- Hex center -->
+      <polygon points="170,140 196,155 196,185 170,200 144,185 144,155" fill="rgba(0,212,255,0.1)" stroke="rgba(0,212,255,0.8)" stroke-width="2"/>
+      <!-- Core glow -->
+      <circle cx="170" cy="170" r="28" fill="rgba(0,212,255,0.3)" stroke="rgba(0,212,255,0.9)" stroke-width="1.5"/>
+      <circle cx="170" cy="170" r="18" fill="rgba(150,240,255,0.7)"/>
+      <circle cx="170" cy="170" r="10" fill="white"/>
+      <!-- Tick marks outer -->
+      <circle cx="170" cy="170" r="155" fill="none" stroke="rgba(0,212,255,0.5)" stroke-width="1" stroke-dasharray="2 20"/>
+    </svg>
+    <div class="arc-core"></div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">42+</div>
+      <div class="stat-label">Suit Versions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3B</div>
+      <div class="stat-label">R&D Budget</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Worlds Saved</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-header">
+    <div class="section-tag">System Profile</div>
+    <h2 class="section-title">About <span>Me</span></h2>
+  </div>
+  <div class="about-grid">
+    <div class="about-text">
+      <p>Full-stack developer, systems architect, and occasional world-saver. My work spans AI-integrated platforms, quantum-level simulations, and distributed defense networks operating across planetary scale.</p>
+      <p>I don't just write code — I engineer solutions that outlast the problem. Whether it's a real-time threat analysis dashboard or a portable power source that fits in your chest, I make it happen.</p>
+      <div class="shield-badge">
+        <span class="shield-icon">🛡️</span>
+        <div>
+          <div class="shield-text">S.H.I.E.L.D. Clearance Level — OMEGA</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Avengers Initiative — Active Member</div>
+        </div>
+      </div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-bar" style="--w:96%">
+        <div class="skill-name">Iron Man Suit Dev</div>
+        <div class="skill-pct">96%</div>
+      </div>
+      <div class="skill-bar" style="--w:99%">
+        <div class="skill-name">AI / JARVIS Systems</div>
+        <div class="skill-pct">99%</div>
+      </div>
+      <div class="skill-bar" style="--w:88%">
+        <div class="skill-name">Arc Reactor Engineering</div>
+        <div class="skill-pct">88%</div>
+      </div>
+      <div class="skill-bar" style="--w:92%">
+        <div class="skill-name">Weapons Systems</div>
+        <div class="skill-pct">92%</div>
+      </div>
+      <div class="skill-bar" style="--w:85%">
+        <div class="skill-name">Quantum Computing</div>
+        <div class="skill-pct">85%</div>
+      </div>
+      <div class="skill-bar" style="--w:78%">
+        <div class="skill-name">Time Travel</div>
+        <div class="skill-pct">78%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="section-header">
+    <div class="section-tag">Mission Logs</div>
+    <h2 class="section-title">Key <span>Projects</span></h2>
+  </div>
+  <div class="projects-grid">
+    <div class="project-card">
+      <div class="project-num">01</div>
+      <span class="project-icon">🤖</span>
+      <div class="project-title">JARVIS AI System</div>
+      <div class="project-desc">Just a Rather Very Intelligent System — the world's most advanced AI assistant. Real-time threat detection, suit management, and sarcastic banter included.</div>
+      <div class="project-tags">
+        <span class="tag">Neural Net</span>
+        <span class="tag">NLP</span>
+        <span class="tag">Python</span>
+      </div>
+    </div>
+    <div class="project-card">
+      <div class="project-num">02</div>
+      <span class="project-icon">⚡</span>
+      <div class="project-title">Arc Reactor MkV</div>
+      <div class="project-desc">Compact palladium-free fusion core generating 3 gigajoules per second. Powers the entire Iron Man Mark 47 suit system indefinitely.</div>
+      <div class="project-tags">
+        <span class="tag">Physics</span>
+        <span class="tag">Hardware</span>
+        <span class="tag">Fusion</span>
+      </div>
+    </div>
+    <div class="project-card">
+      <div class="project-num">03</div>
+      <span class="project-icon">🚀</span>
+      <div class="project-title">Iron Legion Network</div>
+      <div class="project-desc">Autonomous drone swarm with distributed AI control. 35 suits operating in real-time combat coordination across global threat zones.</div>
+      <div class="project-tags">
+        <span class="tag">Robotics</span>
+        <span class="tag">Swarm AI</span>
+        <span class="tag">C++</span>
+      </div>
+    </div>
+    <div class="project-card">
+      <div class="project-num">04</div>
+      <span class="project-icon">🌀</span>
+      <div class="project-title">Quantum Time Nav</div>
+      <div class="project-desc">Time-space navigation system built on the quantum realm. Enabled the Avengers' time heist mission. 100% success on snap reversal.</div>
+      <div class="project-tags">
+        <span class="tag">Quantum</span>
+        <span class="tag">Physics</span>
+        <span class="tag">Math</span>
+      </div>
+    </div>
+    <div class="project-card">
+      <div class="project-num">05</div>
+      <span class="project-icon">🛰️</span>
+      <div class="project-title">Stark Satellite Grid</div>
+      <div class="project-desc">Global surveillance and threat response network. 200 satellites in LEO providing real-time intel for S.H.I.E.L.D. operations worldwide.</div>
+      <div class="project-tags">
+        <span class="tag">Aerospace</span>
+        <span class="tag">Backend</span>
+        <span class="tag">Rust</span>
+      </div>
+    </div>
+    <div class="project-card">
+      <div class="project-num">06</div>
+      <span class="project-icon">🔬</span>
+      <div class="project-title">Extremis Antidote</div>
+      <div class="project-desc">Reverse-engineered the Extremis virus, developed a neutralizing compound, and deployed it globally via atmospheric dispersal in under 48 hours.</div>
+      <div class="project-tags">
+        <span class="tag">Biotech</span>
+        <span class="tag">Chemistry</span>
+        <span class="tag">DevOps</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AVENGERS TEAM -->
+<section id="avengers">
+  <div class="section-header">
+    <div class="section-tag">Alliance Roster</div>
+    <h2 class="section-title">The <span>Avengers</span></h2>
+  </div>
+  <div class="avengers-grid">
+    <div class="avenger-card" style="--card-color:#c0392b; --card-glow:rgba(192,57,43,0.3)">
+      <span class="avenger-emoji">🦸</span>
+      <div class="avenger-name">Iron Man</div>
+      <div class="avenger-role">Tech Lead</div>
+    </div>
+    <div class="avenger-card" style="--card-color:#3498db; --card-glow:rgba(52,152,219,0.3)">
+      <span class="avenger-emoji">🛡️</span>
+      <div class="avenger-name">Captain America</div>
+      <div class="avenger-role">Team Lead</div>
+    </div>
+    <div class="avenger-card" style="--card-color:#27ae60; --card-glow:rgba(39,174,96,0.3)">
+      <span class="avenger-emoji">☘️</span>
+      <div class="avenger-name">Hulk</div>
+      <div class="avenger-role">Brute Force</div>
+    </div>
+    <div class="avenger-card" style="--card-color:#f39c12; --card-glow:rgba(243,156,18,0.3)">
+      <span class="avenger-emoji">⚡</span>
+      <div class="avenger-name">Thor</div>
+      <div class="avenger-role">Cloud Infra</div>
+    </div>
+    <div class="avenger-card" style="--card-color:#9b59b6; --card-glow:rgba(155,89,182,0.3)">
+      <span class="avenger-emoji">🏹</span>
+      <div class="avenger-name">Black Widow</div>
+      <div class="avenger-role">Sec Ops</div>
+    </div>
+    <div class="avenger-card" style="--card-color:#e74c3c; --card-glow:rgba(231,76,60,0.3)">
+      <span class="avenger-emoji">🔮</span>
+      <div class="avenger-name">Scarlet Witch</div>
+      <div class="avenger-role">ML Engineer</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-header">
+    <div class="section-tag">Open Channel</div>
+    <h2 class="section-title">Contact <span>Stark</span></h2>
+  </div>
+  <div class="contact-wrapper">
+    <div class="contact-info">
+      <p>Got a world-ending problem? A startup that needs saving? Or just want to see the lab? Reach out — FRIDAY monitors all channels 24/7.</p>
+      <div class="contact-links">
+        <a href="#" class="contact-link">
+          <span class="contact-link-icon">📡</span>
+          <div>
+            <div class="contact-link-text">S.H.I.E.L.D. Comm</div>
+            <div class="contact-link-val">tony@starkindustries.com</div>
+          </div>
+        </a>
+        <a href="#" class="contact-link">
+          <span class="contact-link-icon">🏢</span>
+          <div>
+            <div class="contact-link-text">HQ Location</div>
+            <div class="contact-link-val">Stark Tower, New York City</div>
+          </div>
+        </a>
+        <a href="#" class="contact-link">
+          <span class="contact-link-icon">💼</span>
+          <div>
+            <div class="contact-link-text">GitHub</div>
+            <div class="contact-link-val">github.com/tony-stark</div>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class="contact-form">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" placeholder="e.g. Steve Rogers">
+      </div>
+      <div class="form-group">
+        <label>Your Email</label>
+        <input type="email" placeholder="agent@shield.gov">
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea placeholder="Describe the threat level..."></textarea>
+      </div>
+      <button class="btn-submit">Initiate Contact</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">STARK INDUSTRIES © 2025</div>
+  <div class="footer-text">// POWERED BY ARC REACTOR // AVENGERS INITIATIVE //</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const dot = document.getElementById('cursorDot');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+    dot.style.left = e.clientX + 'px';
+    dot.style.top = e.clientY + 'px';
+  });
+
+  document.querySelectorAll('a, button, .project-card, .avenger-card, .contact-link').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '40px';
+      cursor.style.height = '40px';
+      cursor.style.borderColor = 'var(--gold)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '20px';
+      cursor.style.height = '20px';
+      cursor.style.borderColor = 'var(--arc)';
+    });
+  });
+
+  // Particles
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (8 + Math.random() * 12) + 's';
+    p.style.animationDelay = (Math.random() * 15) + 's';
+    p.style.width = p.style.height = (Math.random() < 0.5 ? '2px' : '3px');
+    if (Math.random() > 0.7) p.style.background = 'var(--gold)';
+    container.appendChild(p);
+  }
+
+  // Skill bar animation on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.skill-bar').forEach(bar => {
+          bar.style.setProperty('--w', bar.style.getPropertyValue('--w') || '0%');
+        });
+      }
+    });
+  }, { threshold: 0.2 });
+
+  const aboutSection = document.getElementById('about');
+  if (aboutSection) observer.observe(aboutSection);
+
+  // Typing glitch on hero name
+  const name = document.querySelector('.hero-name');
+  let glitchInterval = setInterval(() => {
+    if (Math.random() > 0.95) {
+      name.style.textShadow = `${Math.random()*6-3}px 0 var(--arc), ${Math.random()*6-3}px 0 var(--red)`;
+      setTimeout(() => { name.style.textShadow = ''; }, 100);
+    }
+  }, 500);
+</script>
+</body>
+</html>
